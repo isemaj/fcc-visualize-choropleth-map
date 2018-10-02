@@ -1,124 +1,96 @@
 import * as d3 from 'd3';
+import * as topojson from 'topojson-client';
 
 import '../styles/app.scss';
 
-const api = "https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json";
+const width = '100%';
+const height = 600;
 
-const width = 990;
-const height = 540;
-const padding = 65;
+const us_education_data = 'https://raw.githubusercontent.com/no-stack-dub-sack/testable-projects-fcc/master/src/data/choropleth_map/for_user_education.json';
+const us_county_data = 'https://raw.githubusercontent.com/no-stack-dub-sack/testable-projects-fcc/master/src/data/choropleth_map/counties.json';
 
-const svg = d3.select('#chart')
-  .append('svg')
-  .attr('width', width)
+const body = d3.select("body");
+const svg = d3.select('svg'); 
+const path = d3.geoPath();
+
+svg.attr('width', width)
   .attr('height', height)
 
-const tooltip = d3.select("body")
-  .append('div')
+const tooltip = body.append('div')
   .attr('id', 'tooltip')
+  .style('opacity', 0)
 
-// const legend = d3.select("#chart")
-//   .append('rect')
-//   .attr('id', 'legend')
+const files = [us_education_data, us_county_data];
+const promises = [];
 
-document.addEventListener("DOMContentLoaded", (event) => {
-  fetch(api)
-    .then(res => res.json())
-    .then(data => {
+files.forEach((url) => promises.push(d3.json(url)))
 
-      const actualWidth = +svg.attr('width') - (padding * 2);
-      const actualHeight = +svg.attr('height') - (padding * 2);
-      const baseTemperature = data.baseTemperature;
-      const monthlyVariance = data.monthlyVariance;
-      const minMonths = d3.min(monthlyVariance, (d) => d.month);
-      const maxMonths = d3.max(monthlyVariance, (d) => d.month);
-      const minYears = d3.min(monthlyVariance, (d) => d.year);
-      const maxYears = d3.max(monthlyVariance, (d) => d.year);
+Promise.all(promises)
+  .then((res) => ready(res))
+  .then((err) => readError(err))
 
-      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      const color = ['#FFFFCC', '#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026', '#510018', '#2F0108']
-      const num_ticks = Math.floor((data.monthlyVariance.length / 12) / 10);
+const readError = (err) => {
+  if (err) throw err;
+}
 
-      let xScale = d3.scaleLinear()
-        .domain(d3.extent(monthlyVariance, (d) => d.year))
-        .range([padding + 30, width - padding])
+const ready = (res) => {
+  const data = res[1]
+  const min = d3.min(res[0], (d) => d.bachelorsOrHigher);
+  const max = d3.max(res[0], (d) => d.bachelorsOrHigher);
+  const step = (max - min) / 8;
 
-      let yScale = d3.scaleBand()
-        .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
-        .range([padding, height - padding])
+  const colorScale = d3.scaleThreshold()
+    .domain(d3.range(min, max, step))
+    .range(d3.schemeReds[9])
 
-      let colorScale = d3.scaleQuantize()
-        .domain(d3.extent(monthlyVariance, (d) => d.variance))
-        .range(color)
-
-      let xAxis = d3.axisBottom(xScale)
-        .ticks(num_ticks)
-        .tickFormat(d3.format("d"))
-        .tickSizeOuter(0)
-
-      let yAxis = d3.axisLeft(yScale)
-        .ticks(months.length)
-        .tickSizeOuter(0)
-        .tickFormat((year) => {
-          let date = new Date(0);
-          date.setUTCMonth(year);
-          return d3.timeFormat("%B")(date);
-        })
-
-      // console.log(colorScale.domain())
-      // console.log(colorScale.range())
-      // console.log(colorScale.range().length)
-      // console.log(colorScale(6.0))
-
-      svg.append('g')
-        .call(xAxis)
-        .attr('id', 'x-axis')
-        .attr('transform', `translate(0, ${height - padding})`)
-
-      d3.select('path')
-        .attr('stroke', 0)
-
-      svg.append('g')
-        .call(yAxis)
-        .attr('id', 'y-axis')
-        .attr('transform', `translate(${padding + 30}, 0)`)
-
-      svg.append('g')
-        .selectAll('rect')
-        .data(monthlyVariance)
-        .enter()
-        .append('rect')
-        .attr('id', 'cell')
-        .attr('x', (d) => xScale(d.year))
-        .attr('y', (d) => yScale(d.month - 1))
-        .attr('width', (d) => actualWidth / (maxYears - minYears))
-        .attr('height', actualHeight / 12)
-        .attr('fill', (d) => colorScale(d.variance))
-        .on('mouseover', (d, i) => {
-          tooltip.html(`${months[d.month -1]} ${d.year} <br> Temperature: ${(baseTemperature + d.variance).toFixed(2)} &#8451 <br> Variance: ${d.variance} &#8451`)
-            .style('left', d3.event.clientX - 90)
-            .style('top', d3.event.clientY - 105)
-            .style('opacity', 1)
-        })
-        .on('mouseout', (d) => {
-          tooltip.style('opacity', 0)
-        })
-
-        // legend.append('g')
-        //   .attr('id', 'legend')
-        //   .attr('transform', `translate(0, ${actualHeight})`)
-
-        svg.append('g')
-          .attr('id','legend')
-          .selectAll('rect')
-          .data(color)
-          .enter()
-          .append('rect')
-          .attr('width', 30)
-          .attr('height', 30)
-          .style('fill', (d, i) => color[i])
-          .attr('x', (d,i) => i * 30)
-          .attr('transform', `translate(0, ${height - 38})`)
+  console.log(colorScale.domain())
+  console.log(colorScale.range())
+  // console.log(data)
+  // const test = topojson.feature(data, data.objects.counties).features
+  // console.log(test);
+  // const test2 = topojson.feature(data, data.objects.counties).features
+  // console.log(test2)
+  svg.append('g')
+    .attr('class', 'counties')
+    .attr('transform', 'translate(170, 0)')
+    .selectAll('path')
+    .data(topojson.feature(data, data.objects.counties).features)
+    .enter()
+    .append('path')
+    .attr('class', 'county')
+    .attr('d', path)
+    .attr('fill', (d) => {
+      let result = res[0].filter((i) => {
+        return i.fips === d.id
+      })
+      if (result[0]) {
+        return colorScale(result[0].bachelorsOrHigher)
+      }
+      return colorScale(0)
     })
-});
-
+    .attr('data-fips', (d) => d.id)
+    .attr('data-education', (d) => {
+      let result = res[0].filter((i) => {
+        return i.fips === d.id
+      })
+      if(result[0]) {
+        return result[0].bachelorsOrHigher
+      }
+    })
+    .on('mouseover', (d, i) => {
+      tooltip.style('opacity', 0.7)
+        .html(() => {
+          let result = res[0].filter((i) => {
+            return i.fips === d.id
+          })
+          if(result[0]) {
+            return  `${result[0].area_name}, ${result[0].state} <br> ${result[0].bachelorsOrHigher}%` 
+          }
+        })
+        .style('left', d3.event.pageX + 10)
+        .style('top', d3.event.pageY - 40)
+    })
+    .on('mouseout', (d) => {
+      tooltip.style('opacity', 0)
+    })
+}
