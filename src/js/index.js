@@ -38,7 +38,6 @@ const readError = (err) => {
 
 const ready = (res) => {
   const data = res[1]
-  // console.log(res[0])
   const min = d3.min(res[0], (d) => d.bachelorsOrHigher);
   const max = d3.max(res[0], (d) => d.bachelorsOrHigher);
   const step = (max - min) / 8;
@@ -54,17 +53,6 @@ const ready = (res) => {
     .domain([min, max])
     .rangeRound([600, 860])
 
-
-  // console.log(colorRange)
-  // console.log(colorScale(2)) 
-  // console.log(colorScale.domain().map((d) => console.log(Math.round(d))))
-  // console.log(colorScale.domain())
-  // console.log(colorScale.range())
-  // console.log(data)
-  // const test = topojson.feature(data, data.objects.counties).features
-  // console.log(test);
-  // const test2 = topojson.feature(data, data.objects.counties).features
-  // console.log(test2)
   svg.append('g')
     .attr('class', 'counties')
     .attr('transform', 'translate(170, 0)')
@@ -109,8 +97,6 @@ const ready = (res) => {
       tooltip.style('opacity', 0)
     })
 
-  // console.log(colorScale.range())
-
   legend.selectAll('rect')
     .data(colorScale.range().map((d) => {
       d = colorScale.invertExtent(d);
@@ -133,9 +119,4 @@ const ready = (res) => {
 
     legend.append('g')
       .call(axis)
-
-  // legend.call(d3.axisBottom(axisLabel))
-  //   .tickFormat((x, i) => i ? x : x + '%')
-  //   .tickValues(colorScale.domain())
-  //   .style('color', 'white')
 }
