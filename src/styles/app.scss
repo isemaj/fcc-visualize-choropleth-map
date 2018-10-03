@@ -79,6 +79,18 @@ a {
   color: white;
 }
 
+path[class="domain"] {
+  opacity: 0;
+}
+
+line {
+  stroke: white;
+}
+
+text {
+  fill: white;
+}
+
 // #root {
 //   background-color: white;
 //   width: 990px;

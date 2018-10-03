@@ -11,6 +11,9 @@ const us_county_data = 'https://raw.githubusercontent.com/no-stack-dub-sack/test
 
 const body = d3.select("body");
 const svg = d3.select('svg'); 
+const legend = svg.append('g')
+  .attr('id', 'legend')
+  .attr('transform', 'translate(170,30)')
 const path = d3.geoPath();
 
 svg.attr('width', width)
@@ -35,6 +38,7 @@ const readError = (err) => {
 
 const ready = (res) => {
   const data = res[1]
+  // console.log(res[0])
   const min = d3.min(res[0], (d) => d.bachelorsOrHigher);
   const max = d3.max(res[0], (d) => d.bachelorsOrHigher);
   const step = (max - min) / 8;
@@ -42,9 +46,20 @@ const ready = (res) => {
   const colorScale = d3.scaleThreshold()
     .domain(d3.range(min, max, step))
     .range(d3.schemeReds[9])
-
+  const colorRange = colorScale.range();
   console.log(colorScale.domain())
   console.log(colorScale.range())
+
+  const axisLabel = d3.scaleLinear()
+    .domain([min, max])
+    .rangeRound([600, 860])
+
+
+  // console.log(colorRange)
+  // console.log(colorScale(2)) 
+  // console.log(colorScale.domain().map((d) => console.log(Math.round(d))))
+  // console.log(colorScale.domain())
+  // console.log(colorScale.range())
   // console.log(data)
   // const test = topojson.feature(data, data.objects.counties).features
   // console.log(test);
@@ -93,4 +108,34 @@ const ready = (res) => {
     .on('mouseout', (d) => {
       tooltip.style('opacity', 0)
     })
+
+  // console.log(colorScale.range())
+
+  legend.selectAll('rect')
+    .data(colorScale.range().map((d) => {
+      d = colorScale.invertExtent(d);
+      if (d[0] == null) d[0] = axisLabel.domain()[0];
+      if (d[1] == null) d[1] = axisLabel.domain()[1];
+      return d;
+    }))
+    .enter()
+    .append('rect')
+    .attr('height', 20)
+    .attr('x', (d) => axisLabel(d[0]))
+    .attr('width', (d) => axisLabel(d[1]) - axisLabel(d[0]))
+    .attr('fill', (d,i) => colorRange[i])
+
+    let axis = d3.axisBottom(axisLabel)
+      .tickValues(colorScale.domain())
+      .tickFormat((x, i) => Math.round(x) + '%')
+      .tickSize(30)
+      .tickSizeOuter(0)
+
+    legend.append('g')
+      .call(axis)
+
+  // legend.call(d3.axisBottom(axisLabel))
+  //   .tickFormat((x, i) => i ? x : x + '%')
+  //   .tickValues(colorScale.domain())
+  //   .style('color', 'white')
 }
