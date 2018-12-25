@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+body, html {
+  margin: 0;
+}
+
+body{
+  background-color:   #2b2525;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#title,
+#description {
+  color: white;
+  font-family: 'Roboto', 'sans-serif'
+}
+
+svg {
+  text-align: center; 
+}
+
+#title {
+  font-size: 4em;
+  margin-top: 50px;
+  margin-bottom: 0px;
+}
+
+.selectpath {
+  fill: red;
+}
+
+.counties {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scale: 1.0
+}
+
+.county {
+  stroke-width: 0.9;
+  stroke: white;
+}
+
+.county:hover {
+  opacity: 0.8;
+}
+
+#tooltip {
+  position: absolute;
+  pointer-events: none;
+  color: white;
+  height: auto;
+  width: auto;
+  background-color: rgba(0,0,0,0.8);
+  font-family: 'Roboto', 'sans-serif';
+  font-weight: bold;
+  padding: 8px;
+  text-align: center;
+  border-radius: 7px;
+}
+
+a {
+  &::before {
+    content: '|'
+  }
+  text-decoration: none;
+  color: #fc9272;
+  outline: none;
+}
+
+#source {
+  margin: 20px 0;
+  font-family: 'Roboto', 'sans-serif';
+  color: white;
+}
+
+path[class="domain"] {
+  opacity: 0;
+}
+
+line {
+  stroke: white;
+}
+
+text {
+  fill: white;
+}
