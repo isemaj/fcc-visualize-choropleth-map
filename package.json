@@ -2,7 +2,7 @@
   "name": "fcc-visualize-choropleth-map",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "dev": "webpack-dev-server --config webpack.config.dev.js",
